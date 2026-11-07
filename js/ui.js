@@ -1692,9 +1692,27 @@
 
     function updateCount() {
       if (!selected.size) {
-        countLabel.textContent = fmtInt.format(total) + ' valores · mostrando tudo';
+        countLabel.textContent = fmtInt.format(total) + ' valores disponíveis';
+        countLabel.style.color = 'var(--muted)';
+        countLabel.style.fontWeight = '500';
       } else {
-        countLabel.textContent = 'selecionados: ' + fmtInt.format(selected.size) + ' de ' + fmtInt.format(total);
+        countLabel.textContent = selected.size + ' selecionado' + (selected.size > 1 ? 's' : '') + ' de ' + fmtInt.format(total);
+        countLabel.style.color = 'var(--accent-text)';
+        countLabel.style.fontWeight = '700';
+      }
+      // Destacar botão Concluir quando há seleção
+      if (selected.size > 0 && selected.size < total) {
+        doneBtn.style.background = 'var(--accent)';
+        doneBtn.style.color = 'var(--accent-text)';
+        doneBtn.style.fontWeight = '700';
+      } else if (selected.size === total) {
+        doneBtn.style.background = 'var(--accent-soft)';
+        doneBtn.style.color = 'var(--accent-text)';
+        doneBtn.style.fontWeight = '700';
+      } else {
+        doneBtn.style.background = 'var(--surface-2)';
+        doneBtn.style.color = 'var(--text-2)';
+        doneBtn.style.fontWeight = '600';
       }
     }
 
@@ -1727,10 +1745,11 @@
       if (!shown.length) frag.append(el('p', { class: 'pop-note', text: 'Nenhum valor encontrado.' }));
       
       shown.forEach(function (opt) {
-        var wrap = el('label', { class: 'pop-opt' + (opt.key === C.EMPTY_KEY ? ' is-empty' : '') });
+        var isSelected = selected.has(opt.key);
+        var wrap = el('label', { class: 'pop-opt' + (opt.key === C.EMPTY_KEY ? ' is-empty' : '') + (isSelected ? ' is-selected' : '') });
         var box = el('input', { type: 'checkbox' });
-        box.checked = selected.has(opt.key);
-        box.style.marginRight = '8px';
+        box.checked = isSelected;
+        box.style.marginRight = '12px';
         box.addEventListener('change', function (event) {
           event.stopPropagation();
           if (box.checked) selected.add(opt.key);
@@ -1744,18 +1763,23 @@
         labelSpan.style.overflow = 'hidden';
         labelSpan.style.textOverflow = 'ellipsis';
         labelSpan.style.whiteSpace = 'nowrap';
+        labelSpan.style.fontWeight = isSelected ? '700' : '500';
+        labelSpan.style.color = isSelected ? 'var(--text)' : 'var(--text-2)';
         var countEm = el('em', { text: fmtInt.format(opt.count) });
         countEm.style.fontStyle = 'normal';
-        countEm.style.fontSize = '11px';
-        countEm.style.color = 'var(--muted)';
+        countEm.style.fontSize = '12px';
+        countEm.style.color = isSelected ? 'var(--accent-text)' : 'var(--muted)';
+        countEm.style.fontWeight = '600';
         
         wrap.style.display = 'flex';
         wrap.style.alignItems = 'center';
-        wrap.style.gap = '8px';
-        wrap.style.padding = '8px 10px';
-        wrap.style.borderRadius = '8px';
+        wrap.style.gap = '10px';
+        wrap.style.padding = '14px 16px';
+        wrap.style.borderRadius = '10px';
         wrap.style.cursor = 'pointer';
-        wrap.style.fontSize = '13px';
+        wrap.style.fontSize = '15px';
+        wrap.style.border = '1px solid ' + (isSelected ? 'var(--accent)' : 'transparent');
+        wrap.style.background = isSelected ? 'var(--accent-soft)' : 'transparent';
         wrap.addEventListener('click', function (event) {
           if (event.target.tagName === 'INPUT') return;
           box.checked = !box.checked;
