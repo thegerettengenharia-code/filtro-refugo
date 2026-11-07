@@ -398,6 +398,8 @@
     dom.searchClear.hidden = true;
     dom.emptyState.hidden = true;
     dom.workspace.hidden = false;
+    if (dom.filterHeroEmpty) dom.filterHeroEmpty.hidden = true;
+    if (dom.filterHero) dom.filterHero.hidden = false;
     dom.btnExport.disabled = false;
     dom.btnEdit && (dom.btnEdit.disabled = false);
     dom.fileName.textContent = ds.fileName || 'Planilha';
@@ -762,11 +764,13 @@
 
   function renderFilterButtons() {
     var ds = state.dataset;
-    if (!ds || !dom.filterButtons) return;
+    if (!ds || !dom.filterHeroGrid) return;
+    if (dom.filterHeroEmpty) dom.filterHeroEmpty.hidden = true;
+    if (dom.filterHero) dom.filterHero.hidden = false;
     var frag = document.createDocumentFragment();
     ds.columns.forEach(function (col) {
       var isActive = !!state.filters[col.key];
-      var btn = el('button', { class: 'filter-btn' + (isActive ? ' is-active' : ''), type: 'button' });
+      var btn = el('button', { class: 'filter-hero-btn' + (isActive ? ' is-active' : ''), type: 'button' });
       btn.textContent = col.label;
       btn.addEventListener('click', function () {
         openFilter(col, btn);
@@ -784,7 +788,7 @@
       });
       frag.appendChild(clearBtn);
     }
-    dom.filterButtons.replaceChildren(frag);
+    dom.filterHeroGrid.replaceChildren(frag);
   }
 
   /* ----------------------------------------------------------- ranking */
@@ -2804,7 +2808,9 @@
     dom.btnColumns = $('#btnColumns');
     dom.btnSettings = $('#btnSettings');
     dom.btnClearFilters = $('#btnClearFilters');
-    dom.filterButtons = $('#filterButtons');
+    dom.filterHeroGrid = $('#filterHeroGrid');
+    dom.filterHero = $('#filterHero');
+    dom.filterHeroEmpty = $('#filterHeroEmpty');
     dom.btnNoResultsClear = $('#btnNoResultsClear');
     dom.fileInput = $('#fileInput');
     dom.emptyState = $('#emptyState');

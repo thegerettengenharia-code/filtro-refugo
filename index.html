@@ -162,12 +162,20 @@
       </div>
 
       <div class="analysis-panel" id="analysisPanel">
-        <div class="filter-panel" id="filterPanel">
-          <div class="filter-panel-title">
+        <div class="filter-hero" id="filterHero">
+          <div class="filter-hero-title">
             <svg class="icon" aria-hidden="true"><use href="#i-filter"></use></svg>
-            <span>Escolha o que deseja filtrar:</span>
+            <div>
+              <div class="filter-hero-main">Escolha o que deseja filtrar:</div>
+              <div class="filter-hero-sub">Toque em uma coluna para selecionar seus valores</div>
+            </div>
           </div>
-          <div class="filter-buttons" id="filterButtons"></div>
+          <div class="filter-hero-grid" id="filterHeroGrid"></div>
+          <div class="filter-hero-empty" id="filterHeroEmpty" hidden>
+            <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+            <div>Carregue uma planilha para começar a filtrar</div>
+            <p>Toque em "Escolher planilha" ou arraste um arquivo para cá.</p>
+          </div>
         </div>
 
         <div class="chips" id="chipBar" hidden></div>

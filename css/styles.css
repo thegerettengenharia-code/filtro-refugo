@@ -940,44 +940,51 @@ html[data-theme="light"] .loading { background: rgba(240, 244, 249, .78); }
   .icon-btn { touch-action: manipulation; }
 }
 
-/* ------------------------------------------------ filter panel & modal (UX melhorada) */
+/* ------------------------------------------------ filter hero (UX melhorada) */
 
-.filter-panel {
+.filter-hero {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: 16px;
+  padding: 20px 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: min(420px, calc(100vw - 32px));
+  gap: 14px;
+  max-width: min(700px, calc(100vw - 32px));
+  margin: 0 auto;
 }
-.filter-panel-title {
+.filter-hero-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--line-soft);
+  gap: 10px;
   margin-bottom: 4px;
 }
-.filter-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
+.filter-hero-title .icon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
 }
-.filter-btn {
-  display: inline-flex;
+.filter-hero-main {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+.filter-hero-sub {
+  font-size: 13px;
+  color: var(--text-2);
+}
+.filter-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.filter-hero-btn {
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-width: 80px;
-  min-height: 44px;
-  padding: 10px 14px;
-  border-radius: 10px;
+  gap: 8px;
+  padding: 14px 12px;
+  border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--text);
@@ -985,64 +992,67 @@ html[data-theme="light"] .loading { background: rgba(240, 244, 249, .78); }
   font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
-  transition: all .12s ease;
+  transition: all .14s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-height: 64px;
 }
-.filter-btn:hover {
+.filter-hero-btn:hover {
   background: var(--surface-3);
   border-color: var(--accent-soft);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
-.filter-btn:active {
+.filter-hero-btn:active {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: var(--accent-text);
   transform: scale(0.97);
 }
-.filter-btn.is-active {
+.filter-hero-btn.is-active {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: var(--accent-text);
 }
-.filter-btn.is-active::after {
+.filter-hero-btn.is-active::after {
   content: "✓";
-  font-size: 12px;
+  font-size: 14px;
   margin-left: 6px;
   opacity: 0.9;
 }
-.filter-btn .icon {
-  width: 14px;
-  height: 14px;
+.filter-hero-btn .icon {
+  width: 16px;
+  height: 16px;
   color: var(--muted);
 }
-.filter-btn.is-active .icon {
+.filter-hero-btn.is-active .icon {
   color: var(--accent-text);
 }
-
-/* Botão limpar filtros na área de filtros */
-.filter-clear-all {
-  margin-top: 12px;
-  width: 100%;
+.filter-hero-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  background: var(--surface-2);
+  gap: 10px;
+  padding: 40px 20px;
   color: var(--text-2);
-  border: 1px solid var(--line);
 }
-.filter-clear-all:active { background: var(--surface-3); }
-.filter-clear-all:not(:disabled):hover { background: var(--surface-3); border-color: var(--line-soft); }
-.filter-clear-all.is-danger {
-  background: var(--danger-soft);
-  color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 50%, var(--line));
+.filter-hero-empty .icon {
+  width: 48px;
+  height: 48px;
+  color: var(--muted);
 }
-.filter-clear-all.is-danger:active { background: var(--danger-soft); }
-.filter-clear-all.is-danger:not(:disabled):hover {
-  background: color-mix(in srgb, var(--danger) 20%, var(--surface-2));
-  border-color: var(--danger);
+.filter-hero-empty div {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
 }
-.filter-clear-all:disabled { opacity: .45; cursor: not-allowed; }
+.filter-hero-empty p {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin: 0;
+}
 
 /* Chip mais visível */
 .chip {
