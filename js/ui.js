@@ -2002,11 +2002,201 @@
     if (canAutofocus()) setTimeout(function () { fromInput.focus(); }, 30);
   }
 
-  function openFilter(col, anchor) {
-    if (!state.dataset || !col) return;
-    if (col.type === 'number') openNumberFilter(col, anchor);
-    else if (col.type === 'date') openDateFilter(col, anchor);
-    else openTextFilter(col, anchor);
+  /* --------------------------------------------------- filtro unificado: texto/número/data */
+
+  function openUnifiedFilter(col, anchor, filterType) {
+    var ds = state.dataset;
+    var existing = state.filters[col.key];
+    var selected = new Set();
+    var counts = C.uniqueCounts(ds, col.index, C.rowsExcept(ds, state.filters, col.key));
+    var options = Array.from(counts.values()).sort(function (a, b) {
+      return b.count - a.count || String(a.label).localeCompare(String(b.label), 'pt-BR');
+    });
+    var total = options.length;
+    var labelByKey = new Map();
+    options.forEach(function (opt) { labelByKey.set(opt.key, opt.label); });
+
+    if (existing && existing.type === filterType && existing.values && existing.values instanceof Set) {
+      existing.values.forEach(function (v) { selected.add(v); });
+    } else if (filterType === 'number' && existing) {
+      var min = existing.min, max = existing.max;
+      options.forEach(function (opt) {
+        var v = parseFloat(opt.key);
+        if (!isNaN(v) && (min === null || v >= min) && (max === null || v <= max)) selected.add(opt.key);
+      });
+    } else if (filterType === 'date' && existing) {
+      var from = existing.from, to = existing.to;
+      options.forEach(function (opt) {
+        var d = new Date(opt.key).getTime();
+        if (!isNaN(d) && (from === null || d >= from) && (to === null || d <= to)) selected.add(opt.key);
+      });
+    }
+
+    var root = el('div');
+    root.style.display = 'flex';
+    root.style.flexDirection = 'column';
+    root.style.gap = '8px';
+    root.style.width = '340px';
+    root.style.maxWidth = 'calc(100vw - 24px)';
+
+    root.append(popoverHeader('Filtrar: ' + col.label, fmtInt.format(total) + ' valores distintos'));
+
+    var search = null;
+    if (total > 6) {
+      search = el('input', {
+        class: 'pop-input', type: 'text', placeholder: 'Buscar valor…',
+        'aria-label': 'Buscar valor na lista', autocomplete: 'off', spellcheck: 'false'
+      });
+      search.style.width = '100%';
+      search.style.boxSizing = 'border-box';
+    }
+
+    var list = el('div', { class: 'pop-list', role: 'group', 'aria-label': 'Valores da coluna' });
+    list.style.maxHeight = '360px';
+    list.style.overflowY = 'auto';
+    list.style.marginBottom = '8px';
+
+    var foot = el('div', { class: 'pop-foot' });
+    foot.style.display = 'flex';
+    foot.style.justifyContent = 'space-between';
+    foot.style.alignItems = 'center';
+
+    var countLabel = el('span');
+    countLabel.style.fontSize = '12px';
+    countLabel.style.color = 'var(--muted)';
+
+    var btns = el('div', { class: 'pop-btns', style: { display: 'flex', gap: '6px' } });
+    var applyBtn = el('button', { class: 'btn btn-ghost', type: 'button', text: 'Aplicar' });
+    applyBtn.addEventListener('click', function () { persistAndClose(); });
+    var doneBtn = el('button', { class: 'btn btn-primary', type: 'button', text: 'Concluir' });
+    doneBtn.style.background = 'var(--accent)';
+    doneBtn.style.color = 'var(--accent-text)';
+    doneBtn.addEventListener('click', function () { persistAndClose(); });
+    btns.append(applyBtn, doneBtn);
+    foot.append(countLabel, btns);
+
+    var clearBtn = null;
+    var colFilterActive = state.filters[col.key] && state.filters[col.key].values && state.filters[col.key].values.size > 0;
+    if (colFilterActive) {
+      clearBtn = el('button', { class: 'link-btn is-danger', type: 'button', text: 'Limpar este filtro' });
+      clearBtn.addEventListener('click', function () {
+        selected = new Set();
+        delete state.filters[col.key];
+        applyView(true);
+        renderListOnly();
+        updateCount();
+        closePopover(true);
+        toast('Filtro de ' + col.label + ' removido.');
+      });
+    }
+
+    function updateCount() {
+      if (!selected.size) {
+        countLabel.textContent = fmtInt.format(total) + ' valores disponíveis';
+        countLabel.style.color = 'var(--muted)';
+        countLabel.style.fontWeight = '500';
+      } else {
+        countLabel.textContent = selected.size + ' selecionado' + (selected.size > 1 ? 's' : '') + ' de ' + fmtInt.format(total);
+        countLabel.style.color = 'var(--accent-text)';
+        countLabel.style.fontWeight = '700';
+      }
+      if (selected.size > 0 && selected.size < total) {
+        doneBtn.style.background = 'var(--accent)';
+        doneBtn.style.color = 'var(--accent-text)';
+        doneBtn.style.fontWeight = '700';
+      } else if (selected.size === total && selected.size > 0) {
+        doneBtn.style.background = 'var(--accent-soft)';
+        doneBtn.style.color = 'var(--accent-text)';
+        doneBtn.style.fontWeight = '700';
+      } else {
+        doneBtn.style.background = 'var(--surface-2)';
+        doneBtn.style.color = 'var(--text-2)';
+        doneBtn.style.fontWeight = '600';
+      }
+    }
+
+    function applyFiltersSilently() {
+      if (!selected.size || selected.size === total) {
+        delete state.filters[col.key];
+      } else {
+        state.filters[col.key] = {
+          type: filterType,
+          values: new Set(selected),
+          onlyLabel: selected.size === 1 ? labelByKey.get(Array.from(selected)[0]) : ''
+        };
+      }
+      applyView(false);
+    }
+
+    function persistAndClose() {
+      applyFiltersSilently();
+      closePopover(true);
+    }
+
+    function renderListOnly() {
+      var query = search ? C.normalizeText(search.value) : '';
+      var shown = options.filter(function (opt) {
+        return !query || C.normalizeText(opt.label).indexOf(query) > -1;
+      }).slice(0, 300);
+
+      var frag = document.createDocumentFragment();
+      if (!shown.length) frag.append(el('p', { class: 'pop-note', text: 'Nenhum valor encontrado.' }));
+
+      shown.forEach(function (opt) {
+        var isSelected = selected.has(opt.key);
+        var wrap = el('label', { class: 'pop-opt' + (opt.key === C.EMPTY_KEY ? ' is-empty' : '') + (isSelected ? ' is-selected' : '') });
+        var box = el('input', { type: 'checkbox' });
+        box.checked = isSelected;
+        box.style.marginRight = '12px';
+        box.addEventListener('change', function (event) {
+          event.stopPropagation();
+          if (box.checked) selected.add(opt.key);
+          else selected.delete(opt.key);
+          renderListOnly();
+          updateCount();
+        });
+        var labelSpan = el('span', { text: opt.label, title: opt.label });
+        labelSpan.style.flex = '1';
+        labelSpan.style.minWidth = '0';
+        labelSpan.style.overflow = 'hidden';
+        labelSpan.style.textOverflow = 'ellipsis';
+        labelSpan.style.whiteSpace = 'nowrap';
+        labelSpan.style.fontWeight = isSelected ? '700' : '500';
+        labelSpan.style.color = isSelected ? 'var(--text)' : 'var(--text-2)';
+        var countEm = el('em', { text: fmtInt.format(opt.count) });
+        countEm.style.fontStyle = 'normal';
+        countEm.style.fontSize = '12px';
+        countEm.style.color = isSelected ? 'var(--accent-text)' : 'var(--muted)';
+        countEm.style.fontWeight = '600';
+
+        wrap.style.display = 'flex';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '10px';
+        wrap.style.padding = '14px 16px';
+        wrap.style.borderRadius = '10px';
+        wrap.style.cursor = 'pointer';
+        wrap.style.fontSize = '15px';
+        wrap.style.border = '1px solid ' + (isSelected ? 'var(--accent)' : 'transparent');
+        wrap.style.background = isSelected ? 'var(--accent-soft)' : 'transparent';
+        wrap.addEventListener('click', function (event) {
+          if (event.target.tagName === 'INPUT') return;
+          box.checked = !box.checked;
+          if (box.checked) selected.add(opt.key);
+          else selected.delete(opt.key);
+          renderListOnly();
+          updateCount();
+        });
+        wrap.append(box, labelSpan, countEm);
+        frag.append(wrap);
+      });
+      list.replaceChildren(frag);
+    }
+
+    root.append(search || document.createTextNode(''), clearBtn || document.createTextNode(''), list, foot);
+    renderListOnly();
+    updateCount();
+    openPopover(root, anchor, 'Filtrar ' + col.label);
+    if (search && canAutofocus()) setTimeout(function () { search.focus(); }, 30);
   }
 
   /* --------------------------------------------------------------- menu */
