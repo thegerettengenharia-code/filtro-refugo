@@ -773,6 +773,17 @@
       });
       frag.appendChild(btn);
     });
+    // Botão para limpar todos os filtros ativos
+    var activeKeys = activeFilterKeys();
+    if (activeKeys.length > 0) {
+      var clearBtn = el('button', { class: 'filter-clear-all is-danger', type: 'button' });
+      clearBtn.textContent = 'Limpar todos os filtros (' + activeKeys.length + ')';
+      clearBtn.addEventListener('click', function () {
+        clearAll();
+        renderFilterButtons();
+      });
+      frag.appendChild(clearBtn);
+    }
     dom.filterButtons.replaceChildren(frag);
   }
 
@@ -1681,12 +1692,17 @@
     foot.append(countLabel, btns);
 
     var clearBtn = null;
-    if (selected.size) {
-      clearBtn = el('button', { class: 'link-btn', type: 'button', text: 'Limpar seleção' });
+    var colFilterActive = state.filters[col.key] && state.filters[col.key].type === 'text' && state.filters[col.key].values && state.filters[col.key].values.size > 0;
+    if (colFilterActive) {
+      clearBtn = el('button', { class: 'link-btn is-danger', type: 'button', text: 'Limpar este filtro' });
       clearBtn.addEventListener('click', function () {
         selected = new Set();
+        delete state.filters[col.key];
+        applyView(true);
         renderListOnly();
         updateCount();
+        closePopover(true);
+        toast('Filtro de ' + col.label + ' removido.');
       });
     }
 

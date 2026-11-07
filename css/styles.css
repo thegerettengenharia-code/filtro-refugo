@@ -536,6 +536,8 @@ a { color: var(--accent-text); }
 .link-btn { border: 0; background: transparent; color: var(--accent-text); font-size: 12px; padding: 2px 0; }
 .link-btn:hover { text-decoration: underline; }
 .link-btn.muted { color: var(--muted); }
+.link-btn.is-danger { color: var(--danger); text-decoration: none; }
+.link-btn.is-danger:hover { color: var(--danger); text-decoration: underline; background: var(--danger-soft); }
 
 .pop-list { overflow: auto; max-height: 360px; margin: 0 -8px; padding: 0 8px; display: flex; flex-direction: column; gap: 4px; }
 .pop-opt { display: flex; align-items: center; gap: 12px; padding: 14px 14px; border-radius: 10px; font-size: 15px; cursor: pointer; background: transparent; touch-action: manipulation; transition: background .12s ease; border: 1px solid transparent; }
@@ -1018,6 +1020,47 @@ html[data-theme="light"] .loading { background: rgba(240, 244, 249, .78); }
 .filter-btn.is-active .icon {
   color: var(--accent-text);
 }
+
+/* Botão limpar filtros na área de filtros */
+.filter-clear-all {
+  margin-top: 12px;
+  width: 100%;
+  justify-content: center;
+  background: var(--surface-2);
+  color: var(--text-2);
+  border: 1px solid var(--line);
+}
+.filter-clear-all:active { background: var(--surface-3); }
+.filter-clear-all:not(:disabled):hover { background: var(--surface-3); border-color: var(--line-soft); }
+.filter-clear-all.is-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 50%, var(--line));
+}
+.filter-clear-all.is-danger:active { background: var(--danger-soft); }
+.filter-clear-all.is-danger:not(:disabled):hover {
+  background: color-mix(in srgb, var(--danger) 20%, var(--surface-2));
+  border-color: var(--danger);
+}
+.filter-clear-all:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Chip mais visível */
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 44px; padding: 0 8px 0 12px;
+  border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: var(--accent-soft); color: var(--text);
+  font-size: 13px; font-weight: 700; max-width: 340px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.chip .chip-x {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,0,0,.15);
+  color: var(--text-2);
+}
+.chip .chip-x:active { background: rgba(0,0,0,.25); transform: scale(0.95); }
+.chip .chip-x:hover { background: rgba(0,0,0,.2); }
 
 .editor-modal {
   position: fixed;
