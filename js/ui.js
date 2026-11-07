@@ -1581,6 +1581,7 @@
     state.popover = null;
     state.popoverAnchor = null;
     node.remove();
+    document.body.classList.remove('popover-open');
     if (restoreFocus && anchor && document.contains(anchor)) anchor.focus();
   }
 
@@ -1593,6 +1594,7 @@
     positionFloating(pop, anchor);
     state.popover = pop;
     state.popoverAnchor = anchor;
+    document.body.classList.add('popover-open');
   }
 
   function positionFloating(node, anchor) {
@@ -1635,44 +1637,67 @@
     options.forEach(function (opt) { labelByKey.set(opt.key, opt.label); });
 
     var root = el('div');
-    root.append(popoverHeader('Filtrar: ' + col.label, 'Escolha os valores que devem aparecer'));
-
-    var list = el('div', { class: 'pop-list', role: 'group', 'aria-label': 'Valores da coluna' });
-    var foot = el('div', { class: 'pop-foot' });
-    var countLabel = el('span');
-    var doneBtn = el('button', { class: 'btn btn-ghost', type: 'button', text: 'Concluir' });
-    doneBtn.addEventListener('click', function () { closePopover(true); });
-    foot.append(countLabel, doneBtn);
+    root.style.display = 'flex';
+    root.style.flexDirection = 'column';
+    root.style.gap = '8px';
+    root.style.width = '340px';
+    root.style.maxWidth = 'calc(100vw - 24px)';
+    
+    root.append(popoverHeader('Filtrar: ' + col.label, fmtInt.format(total) + ' valores distintos'));
 
     var search = null;
-    var links = null;
     if (total > 8) {
       search = el('input', {
         class: 'pop-input', type: 'text', placeholder: 'Buscar valor…',
         'aria-label': 'Buscar valor na lista', autocomplete: 'off', spellcheck: 'false'
       });
-      search.addEventListener('input', debounce(renderList, 90));
+      search.style.width = '100%';
+      search.style.boxSizing = 'border-box';
     }
+
+    var list = el('div', { class: 'pop-list', role: 'group', 'aria-label': 'Valores da coluna' });
+    list.style.maxHeight = '340px';
+    list.style.overflowY = 'auto';
+    list.style.marginBottom = '8px';
+
+    var foot = el('div', { class: 'pop-foot' });
+    foot.style.display = 'flex';
+    foot.style.justifyContent = 'space-between';
+    foot.style.alignItems = 'center';
+    
+    var countLabel = el('span');
+    countLabel.style.fontSize = '12px';
+    countLabel.style.color = 'var(--muted)';
+    
+    var btns = el('div', { class: 'pop-btns', style: { display: 'flex', gap: '6px' } });
+    var applyBtn = el('button', { class: 'btn btn-ghost', type: 'button', text: 'Aplicar' });
+    applyBtn.addEventListener('click', function () { persistAndClose(); });
+    var doneBtn = el('button', { class: 'btn btn-primary', type: 'button', text: 'Concluir' });
+    doneBtn.style.background = 'var(--accent)';
+    doneBtn.style.color = 'var(--accent-text)';
+    doneBtn.addEventListener('click', function () { persistAndClose(); });
+    btns.append(applyBtn, doneBtn);
+    foot.append(countLabel, btns);
+
+    var clearBtn = null;
     if (selected.size) {
-      links = el('div', { class: 'pop-links' });
-      var clearBtn = el('button', { class: 'link-btn', type: 'button', text: 'Limpar seleção' });
+      clearBtn = el('button', { class: 'link-btn', type: 'button', text: 'Limpar seleção' });
       clearBtn.addEventListener('click', function () {
         selected = new Set();
-        persist();
-        renderList();
+        renderListOnly();
+        updateCount();
       });
-      links.append(clearBtn);
     }
 
     function updateCount() {
       if (!selected.size) {
         countLabel.textContent = fmtInt.format(total) + ' valores · mostrando tudo';
       } else {
-        countLabel.textContent = 'mostrando ' + fmtInt.format(selected.size) + ' de ' + fmtInt.format(total) + ' valores';
+        countLabel.textContent = 'selecionados: ' + fmtInt.format(selected.size) + ' de ' + fmtInt.format(total);
       }
     }
 
-    function persist() {
+    function applyFiltersSilently() {
       if (!selected.size || selected.size === total) {
         delete state.filters[col.key];
       } else {
@@ -1683,11 +1708,15 @@
           onlyLabel: onlyKey === C.EMPTY_KEY ? '(vazio)' : (onlyKey !== null ? labelByKey.get(onlyKey) : '')
         };
       }
-      applyView(true);
-      updateCount();
+      applyView(false); // não reseta scroll para não perder posição
     }
 
-    function renderList() {
+    function persistAndClose() {
+      applyFiltersSilently();
+      closePopover(true);
+    }
+
+    function renderListOnly() {
       var query = search ? C.normalizeText(search.value) : '';
       var shown = options.filter(function (opt) {
         return !query || C.normalizeText(opt.label).indexOf(query) > -1;
@@ -1700,20 +1729,48 @@
         var wrap = el('label', { class: 'pop-opt' + (opt.key === C.EMPTY_KEY ? ' is-empty' : '') });
         var box = el('input', { type: 'checkbox' });
         box.checked = selected.has(opt.key);
-        box.addEventListener('change', function () {
+        box.style.marginRight = '8px';
+        box.addEventListener('change', function (event) {
+          event.stopPropagation();
           if (box.checked) selected.add(opt.key);
           else selected.delete(opt.key);
-          persist();
-          // Não renderizamos tudo de novo aqui para não perder o foco
+          renderListOnly();
+          updateCount();
         });
-        wrap.append(box, el('span', { text: opt.label, title: opt.label }), el('em', { text: fmtInt.format(opt.count) }));
+        var labelSpan = el('span', { text: opt.label, title: opt.label });
+        labelSpan.style.flex = '1';
+        labelSpan.style.minWidth = '0';
+        labelSpan.style.overflow = 'hidden';
+        labelSpan.style.textOverflow = 'ellipsis';
+        labelSpan.style.whiteSpace = 'nowrap';
+        var countEm = el('em', { text: fmtInt.format(opt.count) });
+        countEm.style.fontStyle = 'normal';
+        countEm.style.fontSize = '11px';
+        countEm.style.color = 'var(--muted)';
+        
+        wrap.style.display = 'flex';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '8px';
+        wrap.style.padding = '8px 10px';
+        wrap.style.borderRadius = '8px';
+        wrap.style.cursor = 'pointer';
+        wrap.style.fontSize = '13px';
+        wrap.addEventListener('click', function (event) {
+          if (event.target.tagName === 'INPUT') return;
+          box.checked = !box.checked;
+          if (box.checked) selected.add(opt.key);
+          else selected.delete(opt.key);
+          renderListOnly();
+          updateCount();
+        });
+        wrap.append(box, labelSpan, countEm);
         frag.append(wrap);
       });
       list.replaceChildren(frag);
     }
 
-    root.append(search || document.createTextNode(''), links || document.createTextNode(''), list, foot);
-    renderList();
+    root.append(search || document.createTextNode(''), clearBtn || document.createTextNode(''), list, foot);
+    renderListOnly();
     updateCount();
     openPopover(root, anchor, 'Filtrar ' + col.label);
     if (search && canAutofocus()) setTimeout(function () { search.focus(); }, 30);
