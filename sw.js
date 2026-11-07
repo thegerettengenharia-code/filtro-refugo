@@ -1,4 +1,4 @@
-var CACHE_NAME = 'refugo-pwa-v1';
+var CACHE_NAME = 'refugo-pwa-v2';
 var ASSETS = [
   './index.html',
   './css/fonts.css',
