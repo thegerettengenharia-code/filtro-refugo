@@ -806,6 +806,18 @@ html[data-theme="light"] .loading { background: rgba(240, 244, 249, .78); }
 }
 
 @media (max-width: 680px) {
+  /* Filtros mais compactos */
+  .filter-panel { padding: 8px; gap: 4px; }
+  .filter-buttons { gap: 4px; }
+  .filter-btn { padding: 4px 8px; font-size: 12px; }
+  
+  /* Reduzir o AppBar para caber mais coisa */
+  .appbar { padding: 6px 10px; }
+  .brand { display: none; }
+  
+  /* Tabela ganha mais espaço */
+  .table-panel { height: 50vh; } 
+  
   .appbar { padding: 10px 14px; flex-wrap: wrap; }
   .brand-text p { display: none; }
   .appbar-actions .btn-ghost span { display: none; }
