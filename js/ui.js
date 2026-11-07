@@ -764,20 +764,71 @@
 
   function renderFilterButtons() {
     var ds = state.dataset;
-    if (!ds || !dom.filterHeroGrid) return;
+    if (!ds || !dom.filterHeroCats) return;
     if (dom.filterHeroEmpty) dom.filterHeroEmpty.hidden = true;
     if (dom.filterHero) dom.filterHero.hidden = false;
-    var frag = document.createDocumentFragment();
+
+    // Agrupar colunas por tipo
+    var cats = {
+      text: { label: 'Texto', icon: 'i-filter', cols: [] },
+      number: { label: 'Número', icon: 'i-bar', cols: [] },
+      date: { label: 'Data', icon: 'i-arrow-up', cols: [] }
+    };
     ds.columns.forEach(function (col) {
-      var isActive = !!state.filters[col.key];
-      var btn = el('button', { class: 'filter-hero-btn' + (isActive ? ' is-active' : ''), type: 'button' });
-      btn.textContent = col.label;
-      btn.addEventListener('click', function () {
-        openFilter(col, btn);
-      });
-      frag.appendChild(btn);
+      var key = col.type === 'text' ? 'text' : col.type === 'number' ? 'number' : 'date';
+      cats[key].cols.push(col);
     });
-    // Botão para limpar todos os filtros ativos
+
+    var frag = document.createDocumentFragment();
+    var anyActive = false;
+
+    Object.keys(cats).forEach(function (catKey) {
+      var cat = cats[catKey];
+      if (!cat.cols.length) return;
+      var catFrag = document.createDocumentFragment();
+      var catTitle = el('div', { class: 'filter-hero-cat-title', text: cat.label });
+      catFrag.append(catTitle);
+      var grid = el('div', { class: 'filter-hero-cat-grid' });
+      cat.cols.forEach(function (col) {
+        var isActive = !!state.filters[col.key];
+        if (isActive) anyActive = true;
+        var btn = el('button', {
+          class: 'filter-hero-btn' + (isActive ? ' is-active' : ''),
+          type: 'button',
+          title: col.label
+        });
+        btn.append(icon(col.type === 'text' ? 'filter' : col.type === 'number' ? 'bar' : 'arrow-up'), el('span', { text: col.label }));
+        btn.addEventListener('click', function (event) {
+          event.stopPropagation();
+          // Toggle: se já ativo, remove; senão abre filtro
+          if (isActive) {
+            delete state.filters[col.key];
+            applyView(true);
+            renderFilterButtons();
+          } else {
+            openFilter(col, btn);
+          }
+        });
+        grid.append(btn);
+      });
+      catFrag.append(grid);
+      frag.append(catFrag);
+    });
+
+    // Botão para selecionar colunas visíveis
+    var colsBtn = el('button', { class: 'filter-hero-btn', type: 'button' });
+    colsBtn.append(icon('columns'), el('span', { text: 'Colunas visíveis' }));
+    colsBtn.addEventListener('click', function () {
+      openColumnsPopover(colsBtn);
+    });
+    grid = el('div', { class: 'filter-hero-cat-grid' });
+    grid.append(colsBtn);
+    var catFrag2 = el('div', { class: 'filter-hero-cat' });
+    catFrag2.append(el('div', { class: 'filter-hero-cat-title', text: 'Exibição' }));
+    catFrag2.append(grid);
+    frag.append(catFrag2);
+
+    // Botão limpar todos
     var activeKeys = activeFilterKeys();
     if (activeKeys.length > 0) {
       var clearBtn = el('button', { class: 'filter-clear-all is-danger', type: 'button' });
@@ -788,7 +839,8 @@
       });
       frag.appendChild(clearBtn);
     }
-    dom.filterHeroGrid.replaceChildren(frag);
+
+    dom.filterHeroCats.replaceChildren(frag);
   }
 
   /* ----------------------------------------------------------- ranking */
@@ -2808,7 +2860,7 @@
     dom.btnColumns = $('#btnColumns');
     dom.btnSettings = $('#btnSettings');
     dom.btnClearFilters = $('#btnClearFilters');
-    dom.filterHeroGrid = $('#filterHeroGrid');
+    dom.filterHeroCats = $('#filterHeroCats');
     dom.filterHero = $('#filterHero');
     dom.filterHeroEmpty = $('#filterHeroEmpty');
     dom.btnNoResultsClear = $('#btnNoResultsClear');
