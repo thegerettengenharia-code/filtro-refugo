@@ -1,0 +1,17 @@
+{
+  "name": "Filtro de Refugo",
+  "short_name": "Filtro Refugo",
+  "description": "Leitura, análise e edição de planilhas de refugo 100% local.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#1D4ED8",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
