@@ -54,6 +54,7 @@
     dirty: 0
   };
   var toastTimer = 0;
+  var deferredPrompt = null;
   var scrollRaf = 0;
 
   /* ------------------------------------------------------------- utilidades */
@@ -2348,6 +2349,7 @@
     });
     dom.btnExport.addEventListener('click', openExportMenu);
     dom.btnEdit && dom.btnEdit.addEventListener('click', function () { openEditorModal(); });
+    dom.btnInstall && dom.btnInstall.addEventListener('click', function () { installPWA(); });
     dom.btnEditClose && dom.btnEditClose.addEventListener('click', function () { closeEditorModal(); });
     dom.btnSample.addEventListener('click', loadSample);
     dom.btnColumns.addEventListener('click', function () { openColumnsPopover(dom.btnColumns); });
@@ -2534,6 +2536,25 @@
     };
   }
 
+  function installPWA() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (choiceResult) {
+        if (choiceResult.outcome === 'accepted') {
+          toast('Aplicativo instalado!');
+        } else {
+          toast('Instalação cancelada.');
+        }
+        deferredPrompt = null;
+        if (dom.btnInstall) dom.btnInstall.hidden = true;
+      });
+    } else {
+      // Fallback para navegadores que não disparam beforeinstallprompt
+      // mas ainda suportam instalação via menu
+      toast('Use o menu do navegador para instalar este aplicativo.');
+    }
+  }
+
   function cacheDom() {
     dom.btnTheme = $('#btnTheme');
     dom.btnOpen = $('#btnOpen');
@@ -2542,6 +2563,7 @@
     dom.btnSample = $('#btnSample');
     dom.btnChange = $('#btnChange');
     dom.btnEdit = $('#btnEdit');
+    dom.btnInstall = $('#btnInstall');
     dom.btnColumns = $('#btnColumns');
     dom.btnSettings = $('#btnSettings');
     dom.btnClearFilters = $('#btnClearFilters');
@@ -2615,6 +2637,19 @@
     initTheme();
     bindEvents();
     exposeApi();
+    
+    // Captura o evento de instalação do PWA
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (dom.btnInstall) dom.btnInstall.hidden = false;
+    });
+    
+    window.addEventListener('appinstalled', function () {
+      deferredPrompt = null;
+      if (dom.btnInstall) dom.btnInstall.hidden = true;
+      toast('Aplicativo instalado com sucesso!');
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
