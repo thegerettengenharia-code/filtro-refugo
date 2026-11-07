@@ -112,6 +112,15 @@
   function clamp(n, min, max) { return Math.min(Math.max(n, min), max); }
   function pad2(n) { return n < 10 ? '0' + n : String(n); }
 
+  // Em telas de toque (celular/tablet) não focar campos automaticamente:
+  // abrir o teclado sozinho esconde a lista e atrapalha a escolha.
+  function canAutofocus() {
+    try {
+      if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return false;
+    } catch (e) { /* ignora */ }
+    return window.innerWidth > 820;
+  }
+
   function toast(message, kind) {
     dom.toast.className = 'toast' + (kind === 'error' ? ' is-error' : '');
     dom.toast.replaceChildren(
@@ -1557,6 +1566,7 @@
     }
     renderRows(true);
     renderChips();
+    updateHeaderState();
     updateFooter();
     syncEditorFromAnalysis();
     renderFilterButtons();
@@ -1614,7 +1624,8 @@
   function openTextFilter(col, anchor) {
     var ds = state.dataset;
     var existing = state.filters[col.key];
-    var selected = existing && existing.type === 'text' ? new Set(existing.values) : null;
+    // Nada marcado = mostrar tudo. Tocar em um valor mantém apenas ele.
+    var selected = existing && existing.type === 'text' ? new Set(existing.values) : new Set();
     var counts = C.uniqueCounts(ds, col.index, C.rowsExcept(ds, state.filters, col.key));
     var options = Array.from(counts.values()).sort(function (a, b) {
       return b.count - a.count || String(a.label).localeCompare(String(b.label), 'pt-BR');
@@ -1624,16 +1635,8 @@
     options.forEach(function (opt) { labelByKey.set(opt.key, opt.label); });
 
     var root = el('div');
-    root.append(popoverHeader('Filtrar: ' + col.label, fmtInt.format(total) + ' valores distintos'));
+    root.append(popoverHeader('Filtrar: ' + col.label, 'Escolha os valores que devem aparecer'));
 
-    var search = el('input', {
-      class: 'pop-input', type: 'text', placeholder: 'Buscar valor…',
-      'aria-label': 'Buscar valor na lista', autocomplete: 'off', spellcheck: 'false'
-    });
-    var links = el('div', { class: 'pop-links' });
-    var allBtn = el('button', { class: 'link-btn', type: 'button', text: 'Marcar todos' });
-    var noneBtn = el('button', { class: 'link-btn muted', type: 'button', text: 'Desmarcar todos' });
-    links.append(allBtn, noneBtn);
     var list = el('div', { class: 'pop-list', role: 'group', 'aria-label': 'Valores da coluna' });
     var foot = el('div', { class: 'pop-foot' });
     var countLabel = el('span');
@@ -1641,13 +1644,36 @@
     doneBtn.addEventListener('click', function () { closePopover(true); });
     foot.append(countLabel, doneBtn);
 
+    var search = null;
+    var links = null;
+    if (total > 8) {
+      search = el('input', {
+        class: 'pop-input', type: 'text', placeholder: 'Buscar valor…',
+        'aria-label': 'Buscar valor na lista', autocomplete: 'off', spellcheck: 'false'
+      });
+      search.addEventListener('input', debounce(renderList, 90));
+    }
+    if (selected.size) {
+      links = el('div', { class: 'pop-links' });
+      var clearBtn = el('button', { class: 'link-btn', type: 'button', text: 'Limpar seleção' });
+      clearBtn.addEventListener('click', function () {
+        selected = new Set();
+        persist();
+        renderList();
+      });
+      links.append(clearBtn);
+    }
+
     function updateCount() {
-      var n = selected === null ? total : selected.size;
-      countLabel.textContent = n + ' de ' + fmtInt.format(total) + ' valores';
+      if (!selected.size) {
+        countLabel.textContent = fmtInt.format(total) + ' valores · mostrando tudo';
+      } else {
+        countLabel.textContent = 'mostrando ' + fmtInt.format(selected.size) + ' de ' + fmtInt.format(total) + ' valores';
+      }
     }
 
     function persist() {
-      if (selected === null || selected.size === total) {
+      if (!selected.size || selected.size === total) {
         delete state.filters[col.key];
       } else {
         var onlyKey = selected.size === 1 ? Array.from(selected)[0] : null;
@@ -1662,7 +1688,7 @@
     }
 
     function renderList() {
-      var query = C.normalizeText(search.value);
+      var query = search ? C.normalizeText(search.value) : '';
       var shown = options.filter(function (opt) {
         return !query || C.normalizeText(opt.label).indexOf(query) > -1;
       }).slice(0, 300);
@@ -1671,9 +1697,8 @@
       shown.forEach(function (opt) {
         var wrap = el('label', { class: 'pop-opt' + (opt.key === C.EMPTY_KEY ? ' is-empty' : '') });
         var box = el('input', { type: 'checkbox' });
-        box.checked = selected === null || selected.has(opt.key);
+        box.checked = selected.has(opt.key);
         box.addEventListener('change', function () {
-          if (selected === null) selected = new Set(options.map(function (o) { return o.key; }));
           if (box.checked) selected.add(opt.key);
           else selected.delete(opt.key);
           persist();
@@ -1684,25 +1709,11 @@
       list.replaceChildren(frag);
     }
 
-    allBtn.addEventListener('click', function () {
-      selected = null;
-      delete state.filters[col.key];
-      applyView(true);
-      renderList();
-      updateCount();
-    });
-    noneBtn.addEventListener('click', function () {
-      selected = new Set();
-      persist();
-      renderList();
-    });
-    search.addEventListener('input', debounce(renderList, 90));
-
-    root.append(search, links, list, foot);
+    root.append(search || document.createTextNode(''), links || document.createTextNode(''), list, foot);
     renderList();
     updateCount();
     openPopover(root, anchor, 'Filtrar ' + col.label);
-    setTimeout(function () { search.focus(); }, 30);
+    if (search && canAutofocus()) setTimeout(function () { search.focus(); }, 30);
   }
 
   /* -------------------------------------------------- filtros: número */
@@ -1781,7 +1792,7 @@
 
     root.append(row, hint, error, links, foot);
     openPopover(root, anchor, 'Filtrar ' + col.label);
-    setTimeout(function () { minInput.focus(); }, 30);
+    if (canAutofocus()) setTimeout(function () { minInput.focus(); }, 30);
   }
 
   /* ---------------------------------------------------- filtros: data */
@@ -1887,7 +1898,7 @@
 
     root.append(presetRow, range, links, foot);
     openPopover(root, anchor, 'Filtrar ' + col.label);
-    setTimeout(function () { fromInput.focus(); }, 30);
+    if (canAutofocus()) setTimeout(function () { fromInput.focus(); }, 30);
   }
 
   function openFilter(col, anchor) {
@@ -2058,7 +2069,7 @@
     foot.append(auto, applyBtn);
     root.append(note, row, info, foot);
     openPopover(root, anchor, 'Ajustes da planilha');
-    setTimeout(function () { input.focus(); input.select(); }, 30);
+    if (canAutofocus()) setTimeout(function () { input.focus(); input.select(); }, 30);
   }
 
   /* ----------------------------------------------------------- detalhes */

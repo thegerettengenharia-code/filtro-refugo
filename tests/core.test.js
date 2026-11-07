@@ -1,7 +1,7 @@
 ﻿/* Testes do núcleo: node tests/core.test.js */
 'use strict';
 const assert = require('assert');
-const C = require('../app/js/core.js');
+const C = require('../js/core.js');
 
 let passed = 0;
 function test(name, fn) {
