@@ -2394,7 +2394,7 @@
         edFitWidths();
         renderEdRows(true);
       }
-      closePopover(false);
+      // Removido closePopover(false) para evitar fechar ao abrir o teclado no mobile
       closeMenu();
     }, 160));
 
@@ -2407,7 +2407,7 @@
     }, true);
 
     document.addEventListener('scroll', function (event) {
-      if (state.popover && !state.popover.contains(event.target)) closePopover(false);
+      // Removido closePopover(false) para evitar fechar ao abrir o teclado no mobile
       if (state.menu) closeMenu();
     }, true);
 
