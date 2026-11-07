@@ -2549,9 +2549,16 @@
         if (dom.btnInstall) dom.btnInstall.hidden = true;
       });
     } else {
-      // Fallback para navegadores que não disparam beforeinstallprompt
-      // mas ainda suportam instalação via menu
-      toast('Use o menu do navegador para instalar este aplicativo.');
+      // Fallback: instruções de instalação manual por plataforma
+      var msg = 'Para instalar: ';
+      if (navigator.userAgent.includes('Android')) {
+        msg += 'toque nos 3 pontos (⋮) do Chrome → "Adicionar à tela inicial".';
+      } else if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
+        msg += 'toque em Compartilhar → "Adicionar à Tela de Início".';
+      } else {
+        msg += 'use o menu do navegador → "Instalar aplicativo" ou "Adicionar à área de trabalho".';
+      }
+      toast(msg, 'info');
     }
   }
 
