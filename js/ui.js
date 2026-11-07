@@ -1692,8 +1692,10 @@
       var shown = options.filter(function (opt) {
         return !query || C.normalizeText(opt.label).indexOf(query) > -1;
       }).slice(0, 300);
+      
       var frag = document.createDocumentFragment();
       if (!shown.length) frag.append(el('p', { class: 'pop-note', text: 'Nenhum valor encontrado.' }));
+      
       shown.forEach(function (opt) {
         var wrap = el('label', { class: 'pop-opt' + (opt.key === C.EMPTY_KEY ? ' is-empty' : '') });
         var box = el('input', { type: 'checkbox' });
@@ -1702,6 +1704,7 @@
           if (box.checked) selected.add(opt.key);
           else selected.delete(opt.key);
           persist();
+          // Não renderizamos tudo de novo aqui para não perder o foco
         });
         wrap.append(box, el('span', { text: opt.label, title: opt.label }), el('em', { text: fmtInt.format(opt.count) }));
         frag.append(wrap);
