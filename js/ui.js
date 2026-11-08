@@ -411,7 +411,6 @@
     applyCols();
     renderHead();
     renderChips();
-    renderQuality();
     updateFooter();
     renderRows(true);
     dom.gridScroll.scrollTop = 0;
@@ -686,30 +685,8 @@
   }
 
   function renderKpis() {
-    var ds = state.dataset;
-    if (!ds) return;
-    if (!ds._all || ds._all.length !== ds.rows.length) ds._all = allRowIndices(ds);
-    var cards = [];
-    cards.push(makeKpi(
-      'Registros',
-      fmtInt.format(state.view.length),
-      pctText(state.view.length, ds.rowCount) + ' de ' + fmtInt.format(ds.rowCount) + ' linhas',
-      false
-    ));
-    state.kpiCols.forEach(function (key) {
-      var col = C.columnByKey(ds, key);
-      if (!col) return;
-      var sum = C.sumColumn(ds, col.index, state.view);
-      if (!(col.key in ds._totals)) ds._totals[col.key] = C.sumColumn(ds, col.index, ds._all);
-      var totalSum = ds._totals[col.key];
-      cards.push(makeKpi(
-        col.label,
-        C.formatMetric(sum, col.decimals),
-        pctText(sum, totalSum) + ' do total',
-        true
-      ));
-    });
-    dom.kpiRow.replaceChildren.apply(dom.kpiRow, cards);
+    // Função mantida por compatibilidade, mas não renderiza mais na versão simplificada
+    return;
   }
 
   /* -------------------------------------------------------------- chips */
@@ -843,35 +820,11 @@
     dom.filterHeroCats.replaceChildren(frag);
   }
 
-  /* ----------------------------------------------------------- ranking */
+  /* ----------------------------------------------------------- ranking - REMOVIDO NA VERSÃO SIMPLIFICADA */
 
   function buildRankControls() {
-    var ds = state.dataset;
-    var dims = ds.columns.filter(function (c) { return c.type === 'text'; });
-    var rankBy = { 'motivo-refugo': 0, 'maq': 1, 'turno': 2, 'processo': 3, 'item-descricao': 4, 'item-base': 5 };
-    dims.sort(function (a, b) {
-      var ra = a.key in rankBy ? rankBy[a.key] : 99;
-      var rb = b.key in rankBy ? rankBy[b.key] : 99;
-      return ra - rb || ds.columns.indexOf(a) - ds.columns.indexOf(b);
-    });
-
-    dom.rankDim.replaceChildren();
-    dims.forEach(function (col) {
-      dom.rankDim.append(el('option', { value: col.key, text: col.label }));
-    });
-    state.rankDim = dims.length ? dims[0].key : '';
-    if (state.rankDim) dom.rankDim.value = state.rankDim;
-
-    var numbers = ds.columns.filter(function (c) { return c.type === 'number'; });
-    dom.rankMetric.replaceChildren();
-    numbers.forEach(function (col) {
-      dom.rankMetric.append(el('option', { value: col.key, text: col.label }));
-    });
-    dom.rankMetric.append(el('option', { value: '__count', text: 'Contagem de linhas' }));
-
-    var kg = numbers.filter(function (c) { return c.unit === 'kg'; })[0];
-    state.rankMetric = kg ? kg.key : (numbers[0] ? numbers[0].key : '__count');
-    dom.rankMetric.value = state.rankMetric;
+    // Função mantida por compatibilidade, mas não implementada
+    return;
   }
 
   function renderInsights() {
@@ -936,37 +889,7 @@
 
   function renderQuality() {
     var ds = state.dataset;
-    if (!dom.qualityPanel) return;
-    if (!ds) { dom.qualityPanel.replaceChildren(); return; }
-    var recognized = ds.columns.filter(function (c) { return c.role; }).length;
-    var invalidCols = ds.columns.filter(function (c) { return c.invalid > 0; });
-    var invalidTotal = invalidCols.reduce(function (sum, c) { return sum + c.invalid; }, 0);
-    var ok = invalidTotal === 0 && ds.rowCount > 0;
-
-    var head = el('div', { class: 'health-head' });
-    head.append(
-      el('h2', { text: 'Saúde da planilha' }),
-      el('span', { class: 'badge ' + (ok ? 'ok' : 'warn') }, [
-        icon(ok ? 'check' : 'alert'),
-        el('span', { text: ok ? 'tudo certo' : 'revisar' })
-      ])
-    );
-
-    var list = el('ul', { class: 'health-list' });
-    function line(label, value, warn) {
-      var li = el('li');
-      li.append(el('span', { text: label }), el('b', { class: warn ? 'warn-text' : '', text: value }));
-      list.append(li);
-    }
-    line('Linhas lidas', fmtInt.format(ds.rowCount));
-    line('Colunas', ds.columns.length + ' (' + recognized + ' reconhecidas)');
-    line('Cabeçalho', 'linha ' + ds.headerRowNumber);
-    if (invalidTotal) {
-      invalidCols.forEach(function (col) {
-        line('Inválidos · ' + col.label, fmtInt.format(col.invalid), true);
-      });
-    }
-    dom.qualityPanel.replaceChildren(head, list);
+    // Removido - painel de saúde da planilha não é mais necessário na versão simplificada
   }
 
   function updateFooter() {
@@ -1047,15 +970,6 @@
     updateEdFx();
     updateEdCount();
     updateEdDirty();
-  }
-
-  function openEditorModal() {
-    if (!state.dataset) return;
-    if (dom.editorModal) dom.editorModal.hidden = false;
-    buildEdView(true);
-  }
-  function closeEditorModal() {
-    if (dom.editorModal) dom.editorModal.hidden = true;
   }
 
   function applyEdCols() {
@@ -1585,31 +1499,28 @@
     }
   }
 
-  function setTab(tab) {
-    var next = tab === 'editor' ? 'editor' : 'analysis';
-    if (next === state.tab) return;
-    if (state.tab === 'editor' && state.edEditing) finishInlineEdit(true);
-    state.tab = next;
-    var analysis = next === 'analysis';
-    dom.tabAnalysis.classList.toggle('is-active', analysis);
-    dom.tabEditor.classList.toggle('is-active', !analysis);
-    dom.tabAnalysis.setAttribute('aria-selected', analysis ? 'true' : 'false');
-    dom.tabEditor.setAttribute('aria-selected', analysis ? 'false' : 'true');
-    dom.analysisPanel.hidden = !analysis;
-    dom.editorPanel.hidden = analysis;
-    updateTabsNote();
-    if (analysis) {
-      renderRows(true);
-    } else if (state.dataset) {
-      requestAnimationFrame(function () {
-        if (!state.dataset || state.tab !== 'editor') return;
-        applyEdCols();
-        edFitWidths();
-        renderEdHead();
-        renderEdRows(true);
-        updateEdFx();
-        updateEdCount();
-      });
+  function openEditorModal() {
+    if (!state.dataset) return;
+    if (dom.editorModal) dom.editorModal.hidden = false;
+    buildEdView(true);
+    if (state.edEditing) finishInlineEdit(true);
+    state.tab = 'editor';
+  }
+  function closeEditorModal() {
+    if (dom.editorModal) dom.editorModal.hidden = true;
+    if (state.editorModalOpen) {
+      state.edEditing = false;
+      state.edEditInput = null;
+      state.edEditInfo = null;
+    }
+  }
+
+  function toggleEditor() {
+    if (!state.dataset) return;
+    if (dom.editorModal.hidden) {
+      openEditorModal();
+    } else {
+      closeEditorModal();
     }
   }
 
@@ -2639,7 +2550,6 @@
     dom.btnEditClose && dom.btnEditClose.addEventListener('click', function () { closeEditorModal(); });
     dom.btnSample.addEventListener('click', loadSample);
     dom.btnColumns.addEventListener('click', function () { openColumnsPopover(dom.btnColumns); });
-    dom.btnSettings.addEventListener('click', function () { openSettingsPopover(dom.btnSettings); });
     dom.btnClearFilters.addEventListener('click', clearAll);
     dom.btnNoResultsClear.addEventListener('click', clearAll);
 
@@ -2858,7 +2768,6 @@
     dom.btnEdit = $('#btnEdit');
     dom.btnInstall = $('#btnInstall');
     dom.btnColumns = $('#btnColumns');
-    dom.btnSettings = $('#btnSettings');
     dom.btnClearFilters = $('#btnClearFilters');
     dom.filterHeroCats = $('#filterHeroCats');
     dom.filterHero = $('#filterHero');
@@ -2903,7 +2812,6 @@
 
     dom.editorModal = $('#editorModal');
     dom.btnEditClose = $('#btnEditClose');
-    dom.analysisPanel = $('#analysisPanel');
     dom.editorPanel = $('#editorPanel');
     dom.edFxInput = $('#edFxInput');
     dom.edFxRef = $('#edFxRef');

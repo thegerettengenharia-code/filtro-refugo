@@ -249,6 +249,17 @@ a { color: var(--accent-text); }
   padding: 12px 20px 16px;
 }
 
+/* Barra de ferramentas simplificada */
+.toolbar-actions .btn-edit {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.toolbar-actions .btn-edit:hover {
+  background: color-mix(in srgb, var(--accent) 88%, white);
+}
+
 .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 .file-block { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -342,30 +353,11 @@ a { color: var(--accent-text); }
 .chip-clear:active { background: var(--surface-2); }
 .chip-clear:hover { color: var(--text); border-color: var(--muted); }
 
-/* ---------------------------------------------------------------- KPIs */
-
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
-.kpi {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 12px 14px 13px; min-width: 0; position: relative; overflow: hidden;
-}
-.kpi::before {
-  content: ""; position: absolute; inset: 0 auto 0 0; width: 3px;
-  background: var(--line);
-}
-.kpi.is-metric::before { background: var(--accent); }
-.kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.kpi-value {
-  font-family: "Fira Code", monospace; font-size: 24px; font-weight: 500;
-  letter-spacing: -.03em; margin-top: 4px; font-variant-numeric: tabular-nums;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.kpi-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.kpi-sub b { color: var(--text-2); font-weight: 600; }
+/* ---------------------------------------------------------------- KPIs - REMOVIDO Na versão simplificada */
 
 /* ---------------------------------------------------------------- conteúdo */
 
-.content { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) var(--sidebar); gap: 12px; }
+.content { flex: 1; min-height: 0; }
 
 .table-panel {
   position: relative; min-width: 0; min-height: 0;
@@ -461,43 +453,7 @@ a { color: var(--accent-text); }
 .quality { display: inline-flex; align-items: center; gap: 6px; color: var(--warn); }
 .quality .icon { width: 14px; height: 14px; }
 
-/* ---------------------------------------------------------------- insights */
-
-.insights { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; scrollbar-color: var(--surface-3) transparent; }
-.insights::-webkit-scrollbar { width: 10px; }
-.insights::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 99px; border: 3px solid var(--bg); }
-
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
-.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
-.panel-head h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
-.rank { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; }
-.rank-item {
-  display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 8px;
-  padding: 6px 6px; border: 0; background: transparent; border-radius: 7px; text-align: left;
-  color: var(--text-2); font-size: 12.5px; position: relative; overflow: hidden;
-}
-.rank-item:hover { background: var(--surface-2); color: var(--text); }
-.rank-pos { font-family: "Fira Code", monospace; font-size: 11px; color: var(--muted); }
-.rank-name { position: relative; z-index: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rank-bar {
-  position: absolute; left: 0; top: 0; bottom: 0; z-index: 0;
-  background: linear-gradient(90deg, var(--accent-soft), transparent 92%);
-  border-left: 2px solid var(--accent); border-radius: 0 4px 4px 0;
-}
-.rank-val { font-family: "Fira Code", monospace; font-size: 11.5px; color: var(--text); font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
-.rank-empty { font-size: 12.5px; color: var(--muted); padding: 10px 2px; }
-.rank-hint { font-size: 11px; color: var(--muted); margin-top: 8px; }
-
-.panel-quiet { padding: 12px 14px; }
-.health-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.health-head h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
-.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-2); }
-.badge.ok { color: var(--teal); border-color: color-mix(in srgb, var(--teal) 45%, transparent); background: color-mix(in srgb, var(--teal) 10%, transparent); }
-.badge.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); background: color-mix(in srgb, var(--warn) 10%, transparent); }
-.badge .icon { width: 11px; height: 11px; }
-.health-list { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
-.health-list li { display: flex; justify-content: space-between; gap: 10px; }
-.health-list b { color: var(--text-2); font-weight: 600; font-family: "Fira Code", monospace; font-size: 11.5px; }
+/* ---------------------------------------------------------------- insights - REMOVIDO Na versão simplificada */
 .health-list .warn-text { color: var(--warn); }
 
 /* ---------------------------------------------------------------- popover */
@@ -851,12 +807,9 @@ html[data-theme="light"] .loading { background: rgba(240, 244, 249, .78); }
   .empty-side { order: 2; }
   .empty-foot { margin-bottom: 0; }
   .workspace { padding-bottom: 24px; }
-  .content { grid-template-columns: 1fr; }
+  .content { width: 100%; }
   .table-panel { height: 64vh; min-height: 380px; }
-  .insights { overflow: visible; }
-  .panel { width: 100%; }
-  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .toolbar-actions { margin-left: 0; width: 100%; }
+  .toolbar-actions { margin-left: 0; width: 100%; flex-wrap: wrap; }
   .search { max-width: none; order: 3; }
   .editor-panel { min-height: 0; }
   .ed-grid-scroll { flex: none; height: 58vh; min-height: 340px; }
@@ -884,9 +837,6 @@ html[data-theme="light"] .loading { background: rgba(240, 244, 249, .78); }
   .empty { padding: 20px 12px; }
   .empty-side { padding: 20px; }
   .dropzone h2 { font-size: 20px; }
-  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .kpi { padding: 10px 12px; }
-  .kpi-value { font-size: 20px; }
   .file-info { max-width: 130px; }
   .table-foot { font-size: 11.5px; }
   .foot-hint { display: none; }
@@ -896,9 +846,6 @@ html[data-theme="light"] .loading { background: rgba(240, 244, 249, .78); }
   .drawer { width: 100vw; }
   .detail { grid-template-columns: 110px minmax(0, 1fr); }
   .toast { left: 14px; right: 14px; bottom: 14px; max-width: none; }
-  .tabs { width: 100%; }
-  .tab { flex: 1; height: 48px; font-size: 14px; }
-  .tabs-note { display: none; }
   .ed-bar { gap: 8px; }
   .ed-bar .fx { flex: 1 1 100%; order: 2; }
   .ed-bar .switch { order: 1; flex: 1; justify-content: center; }
@@ -941,6 +888,11 @@ html[data-theme="light"] .loading { background: rgba(240, 244, 249, .78); }
 }
 
 /* ------------------------------------------------ filter hero (UX melhorada) */
+
+.filters-area {
+  padding: 0 20px 12px;
+  margin-bottom: 8px;
+}
 
 .filter-hero {
   background: var(--surface);

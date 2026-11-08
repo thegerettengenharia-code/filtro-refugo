@@ -142,17 +142,13 @@
         </div>
 
         <div class="toolbar-actions">
-          <label class="select-wrap" id="sheetWrap" hidden>
-            <span class="sr-only">Aba da planilha</span>
-            <select id="sheetSelect"></select>
-            <svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
-          </label>
           <button class="btn btn-ghost" id="btnColumns" type="button">
             <svg class="icon" aria-hidden="true"><use href="#i-columns"></use></svg>
             <span>Colunas</span>
           </button>
-          <button class="btn btn-ghost" id="btnSettings" type="button" aria-label="Ajustes da planilha" title="Ajustes da planilha">
-            <svg class="icon" aria-hidden="true"><use href="#i-sliders"></use></svg>
+          <button class="btn btn-primary" id="btnEdit" type="button">
+            <svg class="icon" aria-hidden="true"><use href="#i-edit"></use></svg>
+            <span>Editar</span>
           </button>
           <button class="btn btn-ghost" id="btnClearFilters" type="button" disabled>
             <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
@@ -161,13 +157,14 @@
         </div>
       </div>
 
-      <div class="analysis-panel" id="analysisPanel">
+      <!-- Área de filtros simplificada -->
+      <div class="filters-area" id="filtersArea">
         <div class="filter-hero" id="filterHero">
           <div class="filter-hero-title">
             <svg class="icon" aria-hidden="true"><use href="#i-filter"></use></svg>
             <div>
-              <div class="filter-hero-main">Escolha o que deseja filtrar:</div>
-              <div class="filter-hero-sub">Clique em uma coluna para selecionar seus valores. Clique novamente para desmarcar.</div>
+              <div class="filter-hero-main">Filtrar por colunas</div>
+              <div class="filter-hero-sub">Clique em qualquer coluna para selecionar valores</div>
             </div>
           </div>
           <div class="filter-hero-cats" id="filterHeroCats"></div>
@@ -177,31 +174,32 @@
             <p>Toque em "Escolher planilha" ou arraste um arquivo para cá.</p>
           </div>
         </div>
-
-        <div class="chips" id="chipBar" hidden></div>
-
-        <div class="content">
-          <section class="table-panel" aria-label="Tabela de dados">
-            <div class="grid-scroll" id="gridScroll">
-              <div class="grid" id="grid">
-                <div class="grid-head" id="gridHead" role="row"></div>
-                <div class="grid-canvas" id="gridCanvas" role="rowgroup"></div>
-              </div>
-            </div>
-            <div class="grid-note" id="noResults" hidden>
-              <svg class="icon" aria-hidden="true"><use href="#i-filter"></use></svg>
-              <strong>Nenhuma linha com esses filtros</strong>
-              <span>Relaxe um filtro ou limpe tudo para voltar a ver os registros.</span>
-              <button class="btn btn-ghost" id="btnNoResultsClear" type="button">Limpar filtros</button>
-            </div>
-            <footer class="table-foot">
-              <span id="rowInfo" aria-live="polite">—</span>
-              <span class="foot-hint"><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg> Clique em uma linha para ver todos os campos</span>
-              <span id="qualityNote" class="quality" hidden></span>
-            </footer>
-          </section>
-        </div>
       </div>
+
+      <div class="chips" id="chipBar" hidden></div>
+
+      <div class="content">
+        <section class="table-panel" aria-label="Tabela de dados">
+          <div class="grid-scroll" id="gridScroll">
+            <div class="grid" id="grid">
+              <div class="grid-head" id="gridHead" role="row"></div>
+              <div class="grid-canvas" id="gridCanvas" role="rowgroup"></div>
+            </div>
+          </div>
+          <div class="grid-note" id="noResults" hidden>
+            <svg class="icon" aria-hidden="true"><use href="#i-filter"></use></svg>
+            <strong>Nenhuma linha com esses filtros</strong>
+            <span>Relaxe um filtro ou limpe tudo para voltar a ver os registros.</span>
+            <button class="btn btn-ghost" id="btnNoResultsClear" type="button">Limpar filtros</button>
+          </div>
+          <footer class="table-foot">
+            <span id="rowInfo" aria-live="polite">—</span>
+            <span class="foot-hint"><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg> Clique em uma linha para ver todos os campos</span>
+            <span id="qualityNote" class="quality" hidden></span>
+          </footer>
+        </section>
+      </div>
+  </section>
 
   <section class="editor-modal" id="editorModal" hidden role="dialog" aria-modal="true" aria-labelledby="editorTitle">
     <div class="modal-head">
